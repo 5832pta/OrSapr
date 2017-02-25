@@ -12,12 +12,13 @@ using reference = System.Int32;
 namespace Steps.NET
 {
     // Класс Plugin - Объекты 3D
+
     [ClassInterface(ClassInterfaceType.AutoDual)]
     public class GearPlugin
     {
-        private KompasObject kompas;
-        private ksDocument3D doc3;
-        private ksDocument2D doc;
+        private KompasObject _kompas;
+        private ksDocument3D _doc3;
+        private ksDocument2D _doc;
 
 
         // Имя библиотеки
@@ -30,21 +31,21 @@ namespace Steps.NET
 
         // Головная функция библиотеки
         public void ExternalRunCommand([In] short command, [In] short mode,
-            [In, MarshalAs(UnmanagedType.IDispatch)] object kompas_)
+            [In, MarshalAs(UnmanagedType.IDispatch)] object kompas)
         {
-            kompas = (KompasObject) kompas_;
-            if (kompas != null)
+            _kompas = (KompasObject) kompas;
+            if (_kompas != null)
             {
-                doc3 = (ksDocument3D) kompas.ActiveDocument3D();
-                if (doc3 == null || doc3.reference == 0)
+                _doc3 = (ksDocument3D) _kompas.ActiveDocument3D();
+                if (_doc3 == null || _doc3.reference == 0)
                 {
-                    doc3 = (ksDocument3D) kompas.Document3D();
-                    doc3.Create(true, true);
+                    _doc3 = (ksDocument3D) _kompas.Document3D();
+                    _doc3.Create(true, true);
 
-                    doc3.comment = "Зубчатое колесо";
-                    doc3.drawMode = 3;
-                    doc3.perspective = true;
-                    doc3.UpdateDocumentParam();
+                    _doc3.comment = "Зубчатое колесо";
+                    _doc3.drawMode = 3;
+                    _doc3.perspective = true;
+                    _doc3.UpdateDocumentParam();
                 }
                switch (command)
                 {
@@ -85,32 +86,30 @@ namespace Steps.NET
         }
 
         //Создание модели
-        public void createModel(Gear properties)
+        public void CreateModel(Gear properties)
         {
-            int z = properties.TeethCount;
-            double beta = properties.Angle;
-            double Lm = properties.Thickness;
+            int teethCount = properties.TeethCount;
+            var angle = properties.Angle;
+            var thickness = properties.Thickness;
             // диаметр отверстия под вал
-            double Dv = properties.ShaftDiam;
-            //Dv = 150;
-            // ширину маточины и ширину колеса принимаем равными
-            double b_k = Lm;
-            // диаметр маточины
-            // толщина диска, соединяющего маточину с ободом
+            var shaftDiam = properties.ShaftDiam;
+            
+
+
             // толщина обода
-            double d_ak = properties.DiameterOut; // диаметр выступов 
-            double d_fk = properties.DiameterIn; // диаметр впадин
-            double d_k = (d_ak + d_fk)/2; // делительный диаметр колеса
-            double alfa1 = 0.0;
-            double alfa2 = 0.0;
+            var diameterOut = properties.DiameterOut; // диаметр выступов 
+            var diameterIn = properties.DiameterIn; // диаметр впадин
+            var diameterPitch = (diameterOut + diameterIn)/2; // делительный диаметр колеса
+            var alfa1 = 0.0;
+            var alfa2 = 0.0;
             // интерфейсы ортогональных плоскостей
-            ksPart iPart = doc3.GetPart((int) Part_Type.pNew_Part) as ksPart; //новый компонет
+            ksPart iPart = _doc3.GetPart((int) Part_Type.pNew_Part) as ksPart; //новый компонет
             if (iPart != null)
             {
                 // интерфейсы ортогональных плоскостей
-                ksEntity PlaneXOY = iPart.GetDefaultEntity((short) Obj3dType.o3d_planeXOY) as ksEntity;
-                ksEntity PlaneXOZ = iPart.GetDefaultEntity((short) Obj3dType.o3d_planeXOZ) as ksEntity;
-                ksEntity PlaneYOZ = iPart.GetDefaultEntity((short) Obj3dType.o3d_planeYOZ) as ksEntity;
+                ksEntity planeXoy = iPart.GetDefaultEntity((short) Obj3dType.o3d_planeXOY) as ksEntity;
+                ksEntity planeXoz = iPart.GetDefaultEntity((short) Obj3dType.o3d_planeXOZ) as ksEntity;
+                ksEntity planeYoz = iPart.GetDefaultEntity((short) Obj3dType.o3d_planeYOZ) as ksEntity;
                 // интерфейс эскиза (половина контура сечения колеса)
                 ksEntity iSketchEntity = iPart.NewEntity((short) Obj3dType.o3d_sketch) as ksEntity;
                 if (iSketchEntity != null)
@@ -119,24 +118,24 @@ namespace Steps.NET
                     ksSketchDefinition iSketchDef = iSketchEntity.GetDefinition() as ksSketchDefinition;
                     if (iSketchDef != null)
                     {
-                        if (PlaneXOY != null)
+                        if (planeXoy != null)
                         {
                             // устанавливаем плоскость,
                             // на которой создается эскиз
-                            iSketchDef.SetPlane(PlaneXOY);
+                            iSketchDef.SetPlane(planeXoy);
 
                             iSketchEntity.Create();
 
                             // запускаем процесс редактирования эскиза
                             // doc – указатель на интерфейс ksDocument2D
-                            doc = iSketchDef.BeginEdit() as ksDocument2D;
-                            if (doc != null)
+                            _doc = iSketchDef.BeginEdit() as ksDocument2D;
+                            if (_doc != null)
                             {
-                                doc.ksLineSeg(-Lm / 2, 00, Lm / 2, 0, 3); //3 - осевая линия
-                                doc.ksLineSeg(Lm / 2, Dv / 2, -Lm / 2, Dv / 2, 1);
-                                doc.ksLineSeg(Lm / 2, Dv / 2, Lm / 2, d_ak / 2, 1);
-                                doc.ksLineSeg(-Lm / 2, d_ak / 2, -Lm / 2, Dv / 2, 1);
-                                doc.ksLineSeg(-Lm/2, d_ak / 2, Lm/2, d_ak / 2, 1);
+                                _doc.ksLineSeg(-thickness / 2, 00, thickness / 2, 0, 3); //3 - осевая линия
+                                _doc.ksLineSeg(thickness / 2, shaftDiam / 2, -thickness / 2, shaftDiam / 2, 1);
+                                _doc.ksLineSeg(thickness / 2, shaftDiam / 2, thickness / 2, diameterOut / 2, 1);
+                                _doc.ksLineSeg(-thickness / 2, diameterOut / 2, -thickness / 2, shaftDiam / 2, 1);
+                                _doc.ksLineSeg(-thickness/2, diameterOut / 2, thickness/2, diameterOut / 2, 1);
                             }
                             iSketchDef.EndEdit();
                         }
@@ -145,9 +144,9 @@ namespace Steps.NET
                 // интерфейс базовой операции вращения
                 ksEntity iBaseRotatedEntity = iPart.NewEntity((short) Obj3dType.o3d_baseRotated) as ksEntity;
                 // интерфейс параметров цвета и визуальных свойств
-                ksColorParam Color = iBaseRotatedEntity.ColorParam() as ksColorParam;
-                Color.specularity = 0.8;
-                Color.shininess = 1;
+                /*ksColorParam color = iBaseRotatedEntity.ColorParam() as ksColorParam;
+                color.specularity = 0.8;
+                color.shininess = 1;*/
                 if (iBaseRotatedEntity != null)
                 {
                     // интерфейс параметров вращения
@@ -171,20 +170,19 @@ namespace Steps.NET
                     ksSketchDefinition iSketch1Def = iSketch1Entity.GetDefinition() as ksSketchDefinition;
                     if (iSketch1Def != null)
                     {
-                        if (PlaneYOZ != null)
+                        if (planeYoz != null)
                         {
                             // размещаем эскиз на плоскости XOY
-                            iSketch1Def.SetPlane(PlaneXOY);
+                            iSketch1Def.SetPlane(planeXoy);
                             iSketch1Entity.Create();
-                            doc = iSketch1Def.BeginEdit() as ksDocument2D;
-                            if (doc != null)
+                            _doc = iSketch1Def.BeginEdit() as ksDocument2D;
+                            if (_doc != null)
                             {
-                                // изображение в эскизе – 4 окружности
-                                double width = properties.KeywayWidth;
-                                doc.ksLineSeg(Lm / 2, -width / 2, -Lm / 2, -width / 2, 1);
-                                doc.ksLineSeg(-Lm / 2, width / 2, -Lm / 2, -width / 2, 1);
-                                doc.ksLineSeg(-Lm / 2, width / 2, Lm / 2, width / 2, 1);
-                                doc.ksLineSeg(Lm / 2, width / 2, Lm / 2, -width / 2, 1);
+                                var width = properties.KeywayWidth;
+                                _doc.ksLineSeg(thickness / 2, -width / 2, -thickness / 2, -width / 2, 1);
+                                _doc.ksLineSeg(-thickness / 2, width / 2, -thickness / 2, -width / 2, 1);
+                                _doc.ksLineSeg(-thickness / 2, width / 2, thickness / 2, width / 2, 1);
+                                _doc.ksLineSeg(thickness / 2, width / 2, thickness / 2, -width / 2, 1);
                             }
                             iSketch1Def.EndEdit();
                         }
@@ -199,16 +197,13 @@ namespace Steps.NET
                         iCutExtrusion.GetDefinition() as ksCutExtrusionDefinition;
                     if (iCutExtrusionDef != null)
                     {
-                        double depth = properties.KeywayDepth;
                         // настройка параметров 
                         iCutExtrusionDef.SetSketch(iSketch1Entity);
                         // направление
                         iCutExtrusionDef.directionType = (short) Direction_Type.dtNormal;
                         // величина вырезания по каждому из направлений
-                        iCutExtrusionDef.SetSideParam(true, (short)ksEndTypeEnum.etBlind, depth + Dv / 2, 0, false);
-                        iCutExtrusionDef.SetSideParam(false, (short)ksEndTypeEnum.etBlind, depth + Dv / 2, 0, false);
+                        iCutExtrusionDef.SetSideParam(false, (short)ksEndTypeEnum.etBlind, properties.KeywayDepth + shaftDiam / 2, 0, false);
                         iCutExtrusionDef.SetThinParam(false, 0, 0, 0);
-                        // создаем отверстия в диске
                         iCutExtrusion.Create();
                     }
                 }
@@ -222,8 +217,8 @@ namespace Steps.NET
                     if (iOffsetPlaneDef != null)
                     {
                         // величина, базовая плоскость и другие параметры смещения
-                        iOffsetPlaneDef.offset = b_k / 2;
-                        iOffsetPlaneDef.SetPlane(PlaneYOZ);
+                        iOffsetPlaneDef.offset = thickness / 2;
+                        iOffsetPlaneDef.SetPlane(planeYoz);
                         iOffsetPlaneDef.direction = false;
                         // делаем плоскость скрытой
                         iOffsetPlaneEntity.hidden = true;
@@ -241,30 +236,30 @@ namespace Steps.NET
                         // базовая плоскость – вспомогательная iOffsetPlaneEntity
                         iSketch2Def.SetPlane(iOffsetPlaneEntity);
                         iSketch2Entity.Create();
-                        doc = iSketch2Def.BeginEdit() as ksDocument2D;
-                        alfa1 = 360.0 / z;
-                        doc.ksMtr(0, 0, 90, 1, 1);
+                        _doc = iSketch2Def.BeginEdit() as ksDocument2D;
+                        alfa1 = 360.0 / teethCount;
+                        _doc.ksMtr(0, 0, 90, 1, 1);
                         // вычерчивание изображения эскиза
                         // вместо эвольвент для простоты
                         // берем обычные дуги по трем точкам
-                        doc.ksArcBy3Points(-(d_ak / 2 + 0.1) * Math.Sin(DegToRad(0)),
-                            -(d_ak / 2 + 0.1) * Math.Cos(DegToRad(0)),
-                            -d_k / 2 * Math.Sin(DegToRad(alfa1 / 8)), -d_k / 2 * Math.Cos(DegToRad(alfa1 / 8)),
-                            -d_fk / 2 * Math.Sin(DegToRad(alfa1 / 4)), -d_fk / 2 * Math.Cos(DegToRad(alfa1 / 4)), 1);
-                        doc.ksArcByPoint(0, 0, d_fk / 2, -d_fk / 2 * Math.Sin(DegToRad(alfa1 / 4)),
-                            -d_fk / 2 * Math.Cos(DegToRad(alfa1 / 4)),
-                            -d_fk / 2 * Math.Sin(DegToRad(alfa1 / 2)), -d_fk / 2 * Math.Cos(DegToRad(alfa1 / 2)), -1, 1);
-                        doc.ksArcBy3Points(-d_fk / 2 * Math.Sin(DegToRad(alfa1 / 2)),
-                            -d_fk / 2 * Math.Cos(DegToRad(alfa1 / 2)),
-                            -d_k / 2 * Math.Sin(DegToRad(0.625 * alfa1)), -d_k / 2 * Math.Cos(DegToRad(0.625 * alfa1)),
-                            -(d_ak / 2 + 0.1) * Math.Sin(DegToRad(0.75 * alfa1)),
-                            -(d_ak / 2 + 0.1) * Math.Cos(DegToRad(0.75 * alfa1)), 1);
-                        doc.ksArcBy3Points(-(d_ak / 2 + 0.1) * Math.Sin(DegToRad(0.75 * alfa1)),
-                            -(d_ak / 2 + 0.1) * Math.Cos(DegToRad(0.75 * alfa1)),
-                            -(d_ak / 2 + 2) * Math.Sin(DegToRad(0.375 * alfa1)),
-                            -(d_ak / 2 + 2) * Math.Cos(DegToRad(0.375 * alfa1)),
-                            -(d_ak / 2 + 0.1) * Math.Sin(DegToRad(0)), -(d_ak / 2 + 0.1) * Math.Cos(DegToRad(0)), 1);
-                        doc.ksDeleteMtr();
+                        _doc.ksArcBy3Points(-(diameterOut / 2 + 0.1) * Math.Sin(DegToRad(0)),
+                            -(diameterOut / 2 + 0.1) * Math.Cos(DegToRad(0)),
+                            -diameterPitch / 2 * Math.Sin(DegToRad(alfa1 / 8)), -diameterPitch / 2 * Math.Cos(DegToRad(alfa1 / 8)),
+                            -diameterIn / 2 * Math.Sin(DegToRad(alfa1 / 4)), -diameterIn / 2 * Math.Cos(DegToRad(alfa1 / 4)), 1);
+                        _doc.ksArcByPoint(0, 0, diameterIn / 2, -diameterIn / 2 * Math.Sin(DegToRad(alfa1 / 4)),
+                            -diameterIn / 2 * Math.Cos(DegToRad(alfa1 / 4)),
+                            -diameterIn / 2 * Math.Sin(DegToRad(alfa1 / 2)), -diameterIn / 2 * Math.Cos(DegToRad(alfa1 / 2)), -1, 1);
+                        _doc.ksArcBy3Points(-diameterIn / 2 * Math.Sin(DegToRad(alfa1 / 2)),
+                            -diameterIn / 2 * Math.Cos(DegToRad(alfa1 / 2)),
+                            -diameterPitch / 2 * Math.Sin(DegToRad(0.625 * alfa1)), -diameterPitch / 2 * Math.Cos(DegToRad(0.625 * alfa1)),
+                            -(diameterOut / 2 + 0.1) * Math.Sin(DegToRad(0.75 * alfa1)),
+                            -(diameterOut / 2 + 0.1) * Math.Cos(DegToRad(0.75 * alfa1)), 1);
+                        _doc.ksArcBy3Points(-(diameterOut / 2 + 0.1) * Math.Sin(DegToRad(0.75 * alfa1)),
+                            -(diameterOut / 2 + 0.1) * Math.Cos(DegToRad(0.75 * alfa1)),
+                            -(diameterOut / 2 + 2) * Math.Sin(DegToRad(0.375 * alfa1)),
+                            -(diameterOut / 2 + 2) * Math.Cos(DegToRad(0.375 * alfa1)),
+                            -(diameterOut / 2 + 0.1) * Math.Sin(DegToRad(0)), -(diameterOut / 2 + 0.1) * Math.Cos(DegToRad(0)), 1);
+                        _doc.ksDeleteMtr();
                         iSketch2Def.EndEdit();
                     }
                 }
@@ -276,37 +271,37 @@ namespace Steps.NET
                     if (iSketch3Def != null)
                     {
                         // строим на плоскости YOZ
-                        iSketch3Def.SetPlane(PlaneYOZ);
+                        iSketch3Def.SetPlane(planeYoz);
                         iSketch3Entity.Create();
-                        doc = iSketch3Def.BeginEdit() as ksDocument2D;
-                        alfa2 = -(180 / Math.PI * (b_k * Math.Tan(Math.PI * (beta) / 180) / d_k));
-                        doc.ksMtr(0, 0, 90, 1, 1);
+                        _doc = iSketch3Def.BeginEdit() as ksDocument2D;
+                        alfa2 = -(180 / Math.PI * (thickness * Math.Tan(Math.PI * (angle) / 180) / diameterPitch));
+                        _doc.ksMtr(0, 0, 90, 1, 1);
                         // вычерчивание изображения эскиза
                         // вместо эвольвент для простоты
                         // берем обычные дуги по трем точкам
-                        doc.ksArcBy3Points(-(d_ak / 2 + 0.1) * Math.Sin(DegToRad(alfa2)),
-                            -(d_ak / 2 + 0.1) * Math.Cos(DegToRad(alfa2)),
-                            -d_k / 2 * Math.Sin(DegToRad(alfa1 / 8 + alfa2)),
-                            -d_k / 2 * Math.Cos(DegToRad(alfa1 / 8 + alfa2)),
-                            -d_fk / 2 * Math.Sin(DegToRad(alfa1 / 4 + alfa2)),
-                            -d_fk / 2 * Math.Cos(DegToRad(alfa1 / 4 + alfa2)), 1);
-                        doc.ksArcByPoint(0, 0, d_fk / 2, -d_fk / 2 * Math.Sin(DegToRad(alfa1 / 4 + alfa2)),
-                            -d_fk / 2 * Math.Cos(DegToRad(alfa1 / 4 + alfa2)),
-                            -d_fk / 2 * Math.Sin(DegToRad(alfa1 / 2 + alfa2)),
-                            -d_fk / 2 * Math.Cos(DegToRad(alfa1 / 2 + alfa2)), -1, 1);
-                        doc.ksArcBy3Points(-d_fk / 2 * Math.Sin(DegToRad(alfa1 / 2 + alfa2)),
-                            -d_fk / 2 * Math.Cos(DegToRad(alfa1 / 2 + alfa2)),
-                            -d_k / 2 * Math.Sin(DegToRad(0.625 * alfa1 + alfa2)),
-                            -d_k / 2 * Math.Cos(DegToRad(0.625 * alfa1 + alfa2)),
-                            -(d_ak / 2 + 0.1) * Math.Sin(DegToRad(0.75 * alfa1 + alfa2)),
-                            -(d_ak / 2 + 0.1) * Math.Cos(DegToRad(0.75 * alfa1 + alfa2)), 1);
-                        doc.ksArcBy3Points(-(d_ak / 2 + 0.1) * Math.Sin(DegToRad(0.75 * alfa1 + alfa2)),
-                            -(d_ak / 2 + 0.1) * Math.Cos(DegToRad(0.75 * alfa1 + alfa2)),
-                            -(d_ak / 2 + 2) * Math.Sin(DegToRad(0.375 * alfa1 + alfa2)),
-                            -(d_ak / 2 + 2) * Math.Cos(DegToRad(0.375 * alfa1 + alfa2)),
-                            -(d_ak / 2 + 0.1) * Math.Sin(DegToRad(alfa2)), -(d_ak / 2 + 0.1) * Math.Cos(DegToRad(alfa2)),
+                        _doc.ksArcBy3Points(-(diameterOut / 2 + 0.1) * Math.Sin(DegToRad(alfa2)),
+                            -(diameterOut / 2 + 0.1) * Math.Cos(DegToRad(alfa2)),
+                            -diameterPitch / 2 * Math.Sin(DegToRad(alfa1 / 8 + alfa2)),
+                            -diameterPitch / 2 * Math.Cos(DegToRad(alfa1 / 8 + alfa2)),
+                            -diameterIn / 2 * Math.Sin(DegToRad(alfa1 / 4 + alfa2)),
+                            -diameterIn / 2 * Math.Cos(DegToRad(alfa1 / 4 + alfa2)), 1);
+                        _doc.ksArcByPoint(0, 0, diameterIn / 2, -diameterIn / 2 * Math.Sin(DegToRad(alfa1 / 4 + alfa2)),
+                            -diameterIn / 2 * Math.Cos(DegToRad(alfa1 / 4 + alfa2)),
+                            -diameterIn / 2 * Math.Sin(DegToRad(alfa1 / 2 + alfa2)),
+                            -diameterIn / 2 * Math.Cos(DegToRad(alfa1 / 2 + alfa2)), -1, 1);
+                        _doc.ksArcBy3Points(-diameterIn / 2 * Math.Sin(DegToRad(alfa1 / 2 + alfa2)),
+                            -diameterIn / 2 * Math.Cos(DegToRad(alfa1 / 2 + alfa2)),
+                            -diameterPitch / 2 * Math.Sin(DegToRad(0.625 * alfa1 + alfa2)),
+                            -diameterPitch / 2 * Math.Cos(DegToRad(0.625 * alfa1 + alfa2)),
+                            -(diameterOut / 2 + 0.1) * Math.Sin(DegToRad(0.75 * alfa1 + alfa2)),
+                            -(diameterOut / 2 + 0.1) * Math.Cos(DegToRad(0.75 * alfa1 + alfa2)), 1);
+                        _doc.ksArcBy3Points(-(diameterOut / 2 + 0.1) * Math.Sin(DegToRad(0.75 * alfa1 + alfa2)),
+                            -(diameterOut / 2 + 0.1) * Math.Cos(DegToRad(0.75 * alfa1 + alfa2)),
+                            -(diameterOut / 2 + 2) * Math.Sin(DegToRad(0.375 * alfa1 + alfa2)),
+                            -(diameterOut / 2 + 2) * Math.Cos(DegToRad(0.375 * alfa1 + alfa2)),
+                            -(diameterOut / 2 + 0.1) * Math.Sin(DegToRad(alfa2)), -(diameterOut / 2 + 0.1) * Math.Cos(DegToRad(alfa2)),
                             1);
-                        doc.ksDeleteMtr();
+                        _doc.ksDeleteMtr();
                         iSketch3Def.EndEdit();
                     }
                 }
@@ -319,10 +314,10 @@ namespace Steps.NET
                     if (iOffsetPlane1Def != null)
                     {
                         // величина смещения та же
-                        iOffsetPlane1Def.offset = b_k / 2;
+                        iOffsetPlane1Def.offset = thickness / 2;
                         // направление противоположное
                         iOffsetPlane1Def.direction = true;
-                        iOffsetPlane1Def.SetPlane(PlaneYOZ);
+                        iOffsetPlane1Def.SetPlane(planeYoz);
                         // делаем плоскость скрытой
                         iOffsetPlane1Entity.hidden = true;
                         // создаем смещенную плоскость
@@ -339,35 +334,35 @@ namespace Steps.NET
                         // базовая плоскость – только что созданная смещенная
                         iSketch4Def.SetPlane(iOffsetPlane1Entity);
                         iSketch4Entity.Create();
-                        doc = iSketch4Def.BeginEdit() as ksDocument2D;
-                        alfa2 = -(180 / Math.PI * (2 * b_k * Math.Tan(Math.PI * (beta) / 180) / d_k));
-                        doc.ksMtr(0, 0, 90, 1, 1);
+                        _doc = iSketch4Def.BeginEdit() as ksDocument2D;
+                        alfa2 = -(180 / Math.PI * (2 * thickness * Math.Tan(Math.PI * (angle) / 180) / diameterPitch));
+                        _doc.ksMtr(0, 0, 90, 1, 1);
                         // вычерчивание изображения эскиза
                         // вместо эвольвент для простоты
                         // берем обычные дуги по трем точкам
-                        doc.ksArcBy3Points(-(d_ak / 2 + 0.1) * Math.Sin(DegToRad(alfa2)),
-                            -(d_ak / 2 + 0.1) * Math.Cos(DegToRad(alfa2)),
-                            -d_k / 2 * Math.Sin(DegToRad(alfa1 / 8 + alfa2)),
-                            -d_k / 2 * Math.Cos(DegToRad(alfa1 / 8 + alfa2)),
-                            -d_fk / 2 * Math.Sin(DegToRad(alfa1 / 4 + alfa2)),
-                            -d_fk / 2 * Math.Cos(DegToRad(alfa1 / 4 + alfa2)), 1);
-                        doc.ksArcByPoint(0, 0, d_fk / 2, -d_fk / 2 * Math.Sin(DegToRad(alfa1 / 4 + alfa2)),
-                            -d_fk / 2 * Math.Cos(DegToRad(alfa1 / 4 + alfa2)),
-                            -d_fk / 2 * Math.Sin(DegToRad(alfa1 / 2 + alfa2)),
-                            -d_fk / 2 * Math.Cos(DegToRad(alfa1 / 2 + alfa2)), -1, 1);
-                        doc.ksArcBy3Points(-d_fk / 2 * Math.Sin(DegToRad(alfa1 / 2 + alfa2)),
-                            -d_fk / 2 * Math.Cos(DegToRad(alfa1 / 2 + alfa2)),
-                            -d_k / 2 * Math.Sin(DegToRad(0.625 * alfa1 + alfa2)),
-                            -d_k / 2 * Math.Cos(DegToRad(0.625 * alfa1 + alfa2)),
-                            -(d_ak / 2 + 0.1) * Math.Sin(DegToRad(0.75 * alfa1 + alfa2)),
-                            -(d_ak / 2 + 0.1) * Math.Cos(DegToRad(0.75 * alfa1 + alfa2)), 1);
-                        doc.ksArcBy3Points(-(d_ak / 2 + 0.1) * Math.Sin(DegToRad(0.75 * alfa1 + alfa2)),
-                            -(d_ak / 2 + 0.1) * Math.Cos(DegToRad(0.75 * alfa1 + alfa2)),
-                            -(d_ak / 2 + 2) * Math.Sin(DegToRad(0.375 * alfa1 + alfa2)),
-                            -(d_ak / 2 + 2) * Math.Cos(DegToRad(0.375 * alfa1 + alfa2)),
-                            -(d_ak / 2 + 0.1) * Math.Sin(DegToRad(alfa2)), -(d_ak / 2 + 0.1) * Math.Cos(DegToRad(alfa2)),
+                        _doc.ksArcBy3Points(-(diameterOut / 2 + 0.1) * Math.Sin(DegToRad(alfa2)),
+                            -(diameterOut / 2 + 0.1) * Math.Cos(DegToRad(alfa2)),
+                            -diameterPitch / 2 * Math.Sin(DegToRad(alfa1 / 8 + alfa2)),
+                            -diameterPitch / 2 * Math.Cos(DegToRad(alfa1 / 8 + alfa2)),
+                            -diameterIn / 2 * Math.Sin(DegToRad(alfa1 / 4 + alfa2)),
+                            -diameterIn / 2 * Math.Cos(DegToRad(alfa1 / 4 + alfa2)), 1);
+                        _doc.ksArcByPoint(0, 0, diameterIn / 2, -diameterIn / 2 * Math.Sin(DegToRad(alfa1 / 4 + alfa2)),
+                            -diameterIn / 2 * Math.Cos(DegToRad(alfa1 / 4 + alfa2)),
+                            -diameterIn / 2 * Math.Sin(DegToRad(alfa1 / 2 + alfa2)),
+                            -diameterIn / 2 * Math.Cos(DegToRad(alfa1 / 2 + alfa2)), -1, 1);
+                        _doc.ksArcBy3Points(-diameterIn / 2 * Math.Sin(DegToRad(alfa1 / 2 + alfa2)),
+                            -diameterIn / 2 * Math.Cos(DegToRad(alfa1 / 2 + alfa2)),
+                            -diameterPitch / 2 * Math.Sin(DegToRad(0.625 * alfa1 + alfa2)),
+                            -diameterPitch / 2 * Math.Cos(DegToRad(0.625 * alfa1 + alfa2)),
+                            -(diameterOut / 2 + 0.1) * Math.Sin(DegToRad(0.75 * alfa1 + alfa2)),
+                            -(diameterOut / 2 + 0.1) * Math.Cos(DegToRad(0.75 * alfa1 + alfa2)), 1);
+                        _doc.ksArcBy3Points(-(diameterOut / 2 + 0.1) * Math.Sin(DegToRad(0.75 * alfa1 + alfa2)),
+                            -(diameterOut / 2 + 0.1) * Math.Cos(DegToRad(0.75 * alfa1 + alfa2)),
+                            -(diameterOut / 2 + 2) * Math.Sin(DegToRad(0.375 * alfa1 + alfa2)),
+                            -(diameterOut / 2 + 2) * Math.Cos(DegToRad(0.375 * alfa1 + alfa2)),
+                            -(diameterOut / 2 + 0.1) * Math.Sin(DegToRad(alfa2)), -(diameterOut / 2 + 0.1) * Math.Cos(DegToRad(alfa2)),
                             1);
-                        doc.ksDeleteMtr();
+                        _doc.ksDeleteMtr();
                         iSketch4Def.EndEdit();
                     }
                 }
@@ -381,11 +376,11 @@ namespace Steps.NET
                     {
                         // интерфейс массива ksEntityCollection
                         // коллекции эскизов для вырезания по сечениям
-                        ksEntityCollection Collect = iCutLoftDef.Sketchs() as ksEntityCollection;
+                        ksEntityCollection collect = iCutLoftDef.Sketchs() as ksEntityCollection;
                         // добавляем эскизы в колекцию
-                        Collect.Add(iSketch2Entity);
-                        Collect.Add(iSketch3Entity);
-                        Collect.Add(iSketch4Entity);
+                        collect.Add(iSketch2Entity);
+                        collect.Add(iSketch3Entity);
+                        collect.Add(iSketch4Entity);
                         // создаем операцию по сечениям
                         // результат – первый вырез между зубьями в венце колеса
                         iCutLoftEntity.Create();
@@ -401,8 +396,8 @@ namespace Steps.NET
                     if (iAxis2PlDef != null)
                     {
                         // задаем плоскости
-                        iAxis2PlDef.SetPlane(1, PlaneXOZ);
-                        iAxis2PlDef.SetPlane(2, PlaneXOY);
+                        iAxis2PlDef.SetPlane(1, planeXoz);
+                        iAxis2PlDef.SetPlane(2, planeXoy);
                         // делаем ось невидимой
                         iAxis.hidden = true;
                         // создаем вспомогательную ось
@@ -418,11 +413,11 @@ namespace Steps.NET
                     if (iCirCopyDef != null)
                     {
                         // коллекция операций для копирования
-                        ksEntityCollection Collect1 = iCirCopyDef.GetOperationArray() as ksEntityCollection;
+                        ksEntityCollection collect1 = iCirCopyDef.GetOperationArray() as ksEntityCollection;
                         // операция всего лишь одна – вырезание зуба
-                        Collect1.Add(iCutLoftEntity);
+                        collect1.Add(iCutLoftEntity);
                         // количество копий, равно количеству зубьев
-                        iCirCopyDef.count2 = z;
+                        iCirCopyDef.count2 = teethCount;
                         iCirCopyDef.factor2 = true;
                         // ось копирования
                         iCirCopyDef.SetAxis(iAxis);

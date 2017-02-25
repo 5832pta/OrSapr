@@ -16,17 +16,17 @@ namespace Steps.NET
             Properties = new Gear();
         }
 
-        private static PluginFrm instanse;
+        private static PluginFrm _instanse;
 
         public static PluginFrm Instanse
         {
             get
             {
-                if (instanse == null)
+                if (_instanse == null)
                 {
-                    instanse = new PluginFrm();
+                    _instanse = new PluginFrm();
                 }
-                return instanse;
+                return _instanse;
             }
         }
 
@@ -34,7 +34,7 @@ namespace Steps.NET
 
         private Gear Properties { get; set; }
 
-        private double ParseDouble(TextBox text)
+        private static double ParseDouble(Control text)
         {
             double value = -1;
             try
@@ -85,32 +85,32 @@ namespace Steps.NET
 
         private void teethCount_TextChanged(object sender, EventArgs e)
         {
-            short Value = 0;
+            short value = 0;
             try
             {
-                Value = Convert.ToByte(teethCount.Text);
+                value = Convert.ToByte(teethCount.Text);
             }
             catch (Exception ignore)
             {
             /* nothing */
             }
-            Properties.TeethCount = Value;
+            Properties.TeethCount = value;
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
             if (Validate(Properties))
             {
-                Plugin.createModel(Properties);
+                Plugin.CreateModel(Properties);
             }
         }
 
-        private bool Validate(Gear props)
+        private static bool Validate(Gear props)
         {
             return props.DiameterIn > 0 &&
                    props.DiameterOut > 0 &&
-                   props.KeywayDepth > 0 &&
-                   props.KeywayWidth > 0 &&
+                   props.KeywayDepth >= 0 &&
+                   props.KeywayWidth >= 0 &&
                    props.ShaftDiam > 0 &&
                    props.TeethCount > 1 &&
                    props.Angle >= 0 &&
@@ -124,13 +124,64 @@ namespace Steps.NET
 
     public class Gear
     {
-        public double DiameterIn;
-        public double DiameterOut;
-        public double ShaftDiam;
-        public double Thickness;
-        public double KeywayDepth;
-        public double KeywayWidth;
-        public double Angle;
-        public short TeethCount;
+        private double _diameterIn;
+
+        public double DiameterIn
+        {
+            get { return _diameterIn; }
+            set { _diameterIn = value; }
+        }
+
+        private double _diameterOut;
+
+        public double DiameterOut
+        {
+            get { return _diameterOut; }
+            set { _diameterOut = value; }
+        }
+
+        private double _shaftDiam;
+
+        public double ShaftDiam
+        {
+            get { return _shaftDiam; }
+            set { _shaftDiam = value; }
+        }
+
+        private double _thickness;
+
+        public double Thickness
+        {
+            get { return _thickness; }
+            set { _thickness = value; }
+        }
+        private double _keywayDepth;
+
+        public double KeywayDepth
+        {
+            get {  return _keywayDepth;}
+            set { _keywayDepth = value; }
+        }
+        private double _keywayWidth;
+
+        public double KeywayWidth
+        {
+            get { return _keywayWidth; }
+            set { _keywayWidth = value; }
+        }
+        private double _angle;
+
+        public double Angle
+        {
+            get { return _angle; }
+            set { _angle = value; }
+        }
+        private short _teethCount;
+
+        public short TeethCount
+        {
+            get { return _teethCount; }
+            set { _teethCount = value; }
+        }
     }
 }
