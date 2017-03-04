@@ -1,0 +1,7 @@
+D:\OrSapr\OrSapr\obj\Debug\Steps.NET.PluginFrm.resources
+D:\OrSapr\OrSapr\obj\Debug\GearPlugin.csproj.GenerateResource.Cache
+D:\OrSapr\OrSapr\obj\Debug\GearPlugin.dll
+D:\OrSapr\OrSapr\obj\Debug\GearPlugin.pdb
+D:\OrSapr\GearPlugin.dll
+D:\OrSapr\GearPlugin.pdb
+D:\OrSapr\GearPlugin.tlb
