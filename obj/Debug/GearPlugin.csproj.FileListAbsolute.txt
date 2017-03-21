@@ -5,3 +5,4 @@ D:\OrSapr\OrSapr\obj\Debug\GearPlugin.pdb
 D:\OrSapr\GearPlugin.dll
 D:\OrSapr\GearPlugin.pdb
 D:\OrSapr\GearPlugin.tlb
+D:\OrSapr\OrSapr\obj\Debug\GearPlugin.csprojResolveAssemblyReference.cache
