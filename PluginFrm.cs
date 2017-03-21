@@ -1,23 +1,31 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 
 namespace Steps.NET
 {
+    /// <summary>
+    /// Форма задания параметров шестерни
+    /// </summary>
+    /// <seealso cref="System.Windows.Forms.Form" />
     public partial class PluginFrm : Form
     {
-        public PluginFrm()
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PluginFrm"/> class.
+        /// </summary>
+        private PluginFrm()
         {
             InitializeComponent();
             Properties = new Gear();
         }
 
+        /// <summary>
+        /// Экземпляр класса
+        /// </summary>
         private static PluginFrm _instanse;
 
+        /// <summary>
+        /// Получение экземпляра класса
+        /// </summary>
         public static PluginFrm Instanse
         {
             get
@@ -30,8 +38,14 @@ namespace Steps.NET
             }
         }
 
+        /// <summary>
+        /// Ссылка на основной класс плагина
+        /// </summary>
         public GearPlugin Plugin;
 
+        /// <summary>
+        /// Свойства шестерни
+        /// </summary>
         private Gear Properties { get; set; }
 
         private static double ParseDouble(Control text)
@@ -48,43 +62,15 @@ namespace Steps.NET
             return value;
         }
 
-        private void diameterIn_TextChanged(object sender, EventArgs e)
+        private void button1_Click(object sender, EventArgs e)
         {
             Properties.DiameterIn = ParseDouble(diameterIn);
-        }
-
-        private void diameterOut_TextChanged(object sender, EventArgs e)
-        {
             Properties.DiameterOut = ParseDouble(diameterOut);
-        }
-
-        private void shaftDiam_TextChanged(object sender, EventArgs e)
-        {
             Properties.ShaftDiam = ParseDouble(shaftDiam);
-        }
-
-        private void thickness_TextChanged(object sender, EventArgs e)
-        {
             Properties.Thickness = ParseDouble(thickness);
-        }
-
-        private void keywayDepth_TextChanged(object sender, EventArgs e)
-        {
             Properties.KeywayDepth = ParseDouble(keywayDepth);
-        }
-
-        private void keywayWidth_TextChanged(object sender, EventArgs e)
-        {
             Properties.KeywayWidth = ParseDouble(keywayWidth);
-        }
-
-        private void angle_TextChanged(object sender, EventArgs e)
-        {
             Properties.Angle = ParseDouble(angle);
-        }
-
-        private void teethCount_TextChanged(object sender, EventArgs e)
-        {
             short value = 0;
             try
             {
@@ -92,96 +78,90 @@ namespace Steps.NET
             }
             catch (Exception ignore)
             {
-            /* nothing */
+                /* nothing */
             }
             Properties.TeethCount = value;
-        }
-
-        private void button1_Click(object sender, EventArgs e)
-        {
             if (Validate(Properties))
             {
                 Plugin.CreateModel(Properties);
             }
         }
 
-        private static bool Validate(Gear props)
+        private bool Validate(Gear props)
         {
-            return props.DiameterIn > 0 &&
-                   props.DiameterOut > 0 &&
-                   props.KeywayDepth >= 0 &&
-                   props.KeywayWidth >= 0 &&
-                   props.ShaftDiam > 0 &&
-                   props.TeethCount > 1 &&
-                   props.Angle >= 0 &&
-                   props.Angle < 70 &&
-                   props.Thickness > 0 &&
-                   props.DiameterIn / 2 >
-                   Math.Pow(Math.Pow(props.ShaftDiam / 2 + props.KeywayDepth, 2) + Math.Pow(props.KeywayWidth / 2, 2), 0.5) &&
-                   props.DiameterIn < props.DiameterOut;
-        }
-    }
+            bool isValid = true;
+            String errorMsg = "Следующие поля имеют некорректные значения:";
+            if (props.DiameterIn <= 0)
+            {
+                errorMsg += "\nДиаметр окружности впадин: " + diameterIn.Text;
+                isValid = false;
+            }
 
-    public class Gear
-    {
-        private double _diameterIn;
+            if (props.DiameterOut <= 0)
+            {
+                errorMsg += "\nДиаметр окружности вершин: " + diameterOut.Text;
+                isValid = false;
+            }
 
-        public double DiameterIn
-        {
-            get { return _diameterIn; }
-            set { _diameterIn = value; }
-        }
+            if (props.KeywayDepth < 0)
+            {
+                errorMsg += "\nГлубина шпоночного паза: " + keywayDepth.Text;
+                isValid = false;
+            }
 
-        private double _diameterOut;
+            if (props.KeywayWidth < 0)
+            {
+                errorMsg += "\nШирина шпоночного паза: " + keywayWidth.Text;
+                isValid = false;
+            }
 
-        public double DiameterOut
-        {
-            get { return _diameterOut; }
-            set { _diameterOut = value; }
-        }
+            if (props.ShaftDiam <= 0)
+            {
+                errorMsg += "\nДиаметр отверстия: " + shaftDiam.Text;
+                isValid = false;
+            }
 
-        private double _shaftDiam;
+            if (props.TeethCount <= 2)
+            {
+                errorMsg += "\nКоличество зубьев: " + teethCount.Text;
+                isValid = false;
+            }
 
-        public double ShaftDiam
-        {
-            get { return _shaftDiam; }
-            set { _shaftDiam = value; }
-        }
+            if (props.Angle < 0)
+            {
+                errorMsg += "\nУгол наклона зубьев меньше 0: " + angle.Text;
+                isValid = false;
+            }
 
-        private double _thickness;
+            if (props.Angle > 70)
+            {
+                errorMsg += "\nУгол наклона зубьев больше 70: " + angle.Text;
+                isValid = false;
+            }
 
-        public double Thickness
-        {
-            get { return _thickness; }
-            set { _thickness = value; }
-        }
-        private double _keywayDepth;
+            if (props.Thickness <= 0)
+            {
+                errorMsg += "\nТолщина детали: " + thickness.Text;
+                isValid = false;
+            }
 
-        public double KeywayDepth
-        {
-            get {  return _keywayDepth;}
-            set { _keywayDepth = value; }
-        }
-        private double _keywayWidth;
+            if (props.DiameterIn / 2 <=
+                Math.Pow(Math.Pow(props.ShaftDiam / 2 + props.KeywayDepth, 2) + Math.Pow(props.KeywayWidth / 2, 2), 0.5))
+            {
+                errorMsg += "\nШпоночный паз выходит за пределы колеса";
+                isValid = false;
+            }
 
-        public double KeywayWidth
-        {
-            get { return _keywayWidth; }
-            set { _keywayWidth = value; }
-        }
-        private double _angle;
-
-        public double Angle
-        {
-            get { return _angle; }
-            set { _angle = value; }
-        }
-        private short _teethCount;
-
-        public short TeethCount
-        {
-            get { return _teethCount; }
-            set { _teethCount = value; }
+            if (props.DiameterIn >= props.DiameterOut)
+            {
+                errorMsg += "\nДиаметр впадин больше или равен диаметру вершин";
+                isValid = false;
+            }
+            if (!isValid)
+            {
+                MessageBox.Show(errorMsg, "На форме есть ошибки");
+            }
+            return isValid;
         }
     }
 }

@@ -138,6 +138,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="Gear.cs" />
     <Compile Include="PluginFrm.cs">
       <SubType>Form</SubType>
     </Compile>

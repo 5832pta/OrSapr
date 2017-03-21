@@ -1,35 +1,56 @@
 
+
 using Kompas6API5;
 using System;
 using Microsoft.Win32;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using Kompas6Constants3D;
-using KAPITypes;
 using reference = System.Int32;
 
 
 namespace Steps.NET
 {
-    // Класс Plugin - Объекты 3D
-
+    /// <summary>
+    /// Основной класс плагина. 
+    /// Здесь находится логика создания детали и точка входа из Компаса.
+    /// </summary>
     [ClassInterface(ClassInterfaceType.AutoDual)]
     public class GearPlugin
     {
+        /// <summary>
+        /// Интерфейс API КОМПАС
+        /// </summary>
         private KompasObject _kompas;
+
+        /// <summary>
+        /// Интерфейс Automation документа-модели
+        /// </summary>
         private ksDocument3D _doc3;
+
+        /// <summary>
+        /// Интерфейс графического документа системы КОМПАС
+        /// </summary>
         private ksDocument2D _doc;
 
 
         // Имя библиотеки
+        /// <summary>
+        /// Получение имени библиотеки.
+        /// </summary>
+        /// <returns>Имя библиотеки</returns>
         [return: MarshalAs(UnmanagedType.BStr)]
         public string GetLibraryName()
         {
             return "Плагин";
         }
 
-
-        // Головная функция библиотеки
+        /// <summary>
+        /// Головная функция библиотеки
+        /// </summary>
+        /// <param name="command">Номер команды в меню</param>
+        /// <param name="mode">Режим работы</param>
+        /// <param name="kompas">интерфейс KompasObject</param>
         public void ExternalRunCommand([In] short command, [In] short mode,
             [In, MarshalAs(UnmanagedType.IDispatch)] object kompas)
         {
@@ -47,7 +68,7 @@ namespace Steps.NET
                     _doc3.perspective = true;
                     _doc3.UpdateDocumentParam();
                 }
-               switch (command)
+                switch (command)
                 {
                     case 1:
                         PluginFrm.Instanse.Plugin = this;
@@ -58,7 +79,13 @@ namespace Steps.NET
         }
 
 
-        // Формирование меню библиотеки
+        /// <summary>
+        /// Получение строки меню для создания меню в виде строк
+        /// </summary>
+        /// <param name="number">Счетчик строк</param>
+        /// <param name="itemType">Тип строки</param>
+        /// <param name="command">Номер команды</param>
+        /// <returns>Строка меню</returns>
         [return: MarshalAs(UnmanagedType.BStr)]
         public string ExternalMenuItem(short number, ref short itemType, ref short command)
         {
@@ -80,26 +107,29 @@ namespace Steps.NET
             return result;
         }
 
+        /// <summary>
+        /// Перевод градусов в радианы
+        /// </summary>
+        /// <param name="angle">Угол в градусах</param>
+        /// <returns>Угол в радианах</returns>
         private static double DegToRad(double angle)
         {
             return Math.PI * angle / 180.0;
         }
 
-        //Создание модели
+        /// <summary>
+        /// Создание модели шестерни
+        /// </summary>
+        /// <param name="properties">Передаваемые с формы параметры</param>
         public void CreateModel(Gear properties)
         {
             int teethCount = properties.TeethCount;
             var angle = properties.Angle;
             var thickness = properties.Thickness;
-            // диаметр отверстия под вал
             var shaftDiam = properties.ShaftDiam;
-            
-
-
-            // толщина обода
-            var diameterOut = properties.DiameterOut; // диаметр выступов 
-            var diameterIn = properties.DiameterIn; // диаметр впадин
-            var diameterPitch = (diameterOut + diameterIn)/2; // делительный диаметр колеса
+            var diameterOut = properties.DiameterOut;
+            var diameterIn = properties.DiameterIn;
+            var diameterPitch = (diameterOut + diameterIn) / 2; // делительный диаметр колеса
             var alfa1 = 0.0;
             var alfa2 = 0.0;
             // интерфейсы ортогональных плоскостей
@@ -135,7 +165,7 @@ namespace Steps.NET
                                 _doc.ksLineSeg(thickness / 2, shaftDiam / 2, -thickness / 2, shaftDiam / 2, 1);
                                 _doc.ksLineSeg(thickness / 2, shaftDiam / 2, thickness / 2, diameterOut / 2, 1);
                                 _doc.ksLineSeg(-thickness / 2, diameterOut / 2, -thickness / 2, shaftDiam / 2, 1);
-                                _doc.ksLineSeg(-thickness/2, diameterOut / 2, thickness/2, diameterOut / 2, 1);
+                                _doc.ksLineSeg(-thickness / 2, diameterOut / 2, thickness / 2, diameterOut / 2, 1);
                             }
                             iSketchDef.EndEdit();
                         }
@@ -143,10 +173,6 @@ namespace Steps.NET
                 }
                 // интерфейс базовой операции вращения
                 ksEntity iBaseRotatedEntity = iPart.NewEntity((short) Obj3dType.o3d_baseRotated) as ksEntity;
-                // интерфейс параметров цвета и визуальных свойств
-                /*ksColorParam color = iBaseRotatedEntity.ColorParam() as ksColorParam;
-                color.specularity = 0.8;
-                color.shininess = 1;*/
                 if (iBaseRotatedEntity != null)
                 {
                     // интерфейс параметров вращения
@@ -202,7 +228,8 @@ namespace Steps.NET
                         // направление
                         iCutExtrusionDef.directionType = (short) Direction_Type.dtNormal;
                         // величина вырезания по каждому из направлений
-                        iCutExtrusionDef.SetSideParam(false, (short)ksEndTypeEnum.etBlind, properties.KeywayDepth + shaftDiam / 2, 0, false);
+                        iCutExtrusionDef.SetSideParam(true, (short) ksEndTypeEnum.etBlind,
+                            properties.KeywayDepth + shaftDiam / 2, 0, false);
                         iCutExtrusionDef.SetThinParam(false, 0, 0, 0);
                         iCutExtrusion.Create();
                     }
@@ -244,21 +271,26 @@ namespace Steps.NET
                         // берем обычные дуги по трем точкам
                         _doc.ksArcBy3Points(-(diameterOut / 2 + 0.1) * Math.Sin(DegToRad(0)),
                             -(diameterOut / 2 + 0.1) * Math.Cos(DegToRad(0)),
-                            -diameterPitch / 2 * Math.Sin(DegToRad(alfa1 / 8)), -diameterPitch / 2 * Math.Cos(DegToRad(alfa1 / 8)),
-                            -diameterIn / 2 * Math.Sin(DegToRad(alfa1 / 4)), -diameterIn / 2 * Math.Cos(DegToRad(alfa1 / 4)), 1);
+                            -diameterPitch / 2 * Math.Sin(DegToRad(alfa1 / 8)),
+                            -diameterPitch / 2 * Math.Cos(DegToRad(alfa1 / 8)),
+                            -diameterIn / 2 * Math.Sin(DegToRad(alfa1 / 4)),
+                            -diameterIn / 2 * Math.Cos(DegToRad(alfa1 / 4)), 1);
                         _doc.ksArcByPoint(0, 0, diameterIn / 2, -diameterIn / 2 * Math.Sin(DegToRad(alfa1 / 4)),
                             -diameterIn / 2 * Math.Cos(DegToRad(alfa1 / 4)),
-                            -diameterIn / 2 * Math.Sin(DegToRad(alfa1 / 2)), -diameterIn / 2 * Math.Cos(DegToRad(alfa1 / 2)), -1, 1);
+                            -diameterIn / 2 * Math.Sin(DegToRad(alfa1 / 2)),
+                            -diameterIn / 2 * Math.Cos(DegToRad(alfa1 / 2)), -1, 1);
                         _doc.ksArcBy3Points(-diameterIn / 2 * Math.Sin(DegToRad(alfa1 / 2)),
                             -diameterIn / 2 * Math.Cos(DegToRad(alfa1 / 2)),
-                            -diameterPitch / 2 * Math.Sin(DegToRad(0.625 * alfa1)), -diameterPitch / 2 * Math.Cos(DegToRad(0.625 * alfa1)),
+                            -diameterPitch / 2 * Math.Sin(DegToRad(0.625 * alfa1)),
+                            -diameterPitch / 2 * Math.Cos(DegToRad(0.625 * alfa1)),
                             -(diameterOut / 2 + 0.1) * Math.Sin(DegToRad(0.75 * alfa1)),
                             -(diameterOut / 2 + 0.1) * Math.Cos(DegToRad(0.75 * alfa1)), 1);
                         _doc.ksArcBy3Points(-(diameterOut / 2 + 0.1) * Math.Sin(DegToRad(0.75 * alfa1)),
                             -(diameterOut / 2 + 0.1) * Math.Cos(DegToRad(0.75 * alfa1)),
                             -(diameterOut / 2 + 2) * Math.Sin(DegToRad(0.375 * alfa1)),
                             -(diameterOut / 2 + 2) * Math.Cos(DegToRad(0.375 * alfa1)),
-                            -(diameterOut / 2 + 0.1) * Math.Sin(DegToRad(0)), -(diameterOut / 2 + 0.1) * Math.Cos(DegToRad(0)), 1);
+                            -(diameterOut / 2 + 0.1) * Math.Sin(DegToRad(0)),
+                            -(diameterOut / 2 + 0.1) * Math.Cos(DegToRad(0)), 1);
                         _doc.ksDeleteMtr();
                         iSketch2Def.EndEdit();
                     }
@@ -299,7 +331,8 @@ namespace Steps.NET
                             -(diameterOut / 2 + 0.1) * Math.Cos(DegToRad(0.75 * alfa1 + alfa2)),
                             -(diameterOut / 2 + 2) * Math.Sin(DegToRad(0.375 * alfa1 + alfa2)),
                             -(diameterOut / 2 + 2) * Math.Cos(DegToRad(0.375 * alfa1 + alfa2)),
-                            -(diameterOut / 2 + 0.1) * Math.Sin(DegToRad(alfa2)), -(diameterOut / 2 + 0.1) * Math.Cos(DegToRad(alfa2)),
+                            -(diameterOut / 2 + 0.1) * Math.Sin(DegToRad(alfa2)),
+                            -(diameterOut / 2 + 0.1) * Math.Cos(DegToRad(alfa2)),
                             1);
                         _doc.ksDeleteMtr();
                         iSketch3Def.EndEdit();
@@ -360,7 +393,8 @@ namespace Steps.NET
                             -(diameterOut / 2 + 0.1) * Math.Cos(DegToRad(0.75 * alfa1 + alfa2)),
                             -(diameterOut / 2 + 2) * Math.Sin(DegToRad(0.375 * alfa1 + alfa2)),
                             -(diameterOut / 2 + 2) * Math.Cos(DegToRad(0.375 * alfa1 + alfa2)),
-                            -(diameterOut / 2 + 0.1) * Math.Sin(DegToRad(alfa2)), -(diameterOut / 2 + 0.1) * Math.Cos(DegToRad(alfa2)),
+                            -(diameterOut / 2 + 0.1) * Math.Sin(DegToRad(alfa2)),
+                            -(diameterOut / 2 + 0.1) * Math.Cos(DegToRad(alfa2)),
                             1);
                         _doc.ksDeleteMtr();
                         iSketch4Def.EndEdit();
@@ -430,12 +464,14 @@ namespace Steps.NET
 
         #region COM Registration
 
-        // Эта функция выполняется при регистрации класса для COM
-        // Она добавляет в ветку реестра компонента раздел Kompas_Library,
-        // который сигнализирует о том, что класс является приложением Компас,
-        // а также заменяет имя InprocServer32 на полное, с указанием пути.
-        // Все это делается для того, чтобы иметь возможность подключить
-        // библиотеку на вкладке ActiveX.
+        /// <summary>
+        /// Эта функция выполняется при регистрации класса для COM
+        /// Она добавляет в ветку реестра компонента раздел Kompas_Library,
+        /// который сигнализирует о том, что класс является приложением Компас,
+        /// а также заменяет имя InprocServer32 на полное, с указанием пути.
+        /// Все это делается для того, чтобы иметь возможность подключить
+        /// библиотеку на вкладке ActiveX.
+        /// </summary>
         [ComRegisterFunction]
         public static void RegisterKompasLib(Type t)
         {
@@ -456,7 +492,11 @@ namespace Steps.NET
             }
         }
 
-        // Эта функция удаляет раздел Kompas_Library из реестра
+
+        /// <summary>
+        /// Эта функция удаляет раздел Kompas_Library из реестра
+        /// </summary>
+        /// <param name="t">The t.</param>
         [ComUnregisterFunction]
         public static void UnregisterKompasLib(Type t)
         {

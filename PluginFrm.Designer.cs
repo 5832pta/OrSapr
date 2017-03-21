@@ -52,9 +52,9 @@
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(12, 29);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(172, 13);
+            this.label1.Size = new System.Drawing.Size(155, 13);
             this.label1.TabIndex = 0;
-            this.label1.Text = "Диаметр шестерни (внутренний)";
+            this.label1.Text = "Диаметр окружности впадин";
             // 
             // diameterIn
             // 
@@ -62,7 +62,6 @@
             this.diameterIn.Name = "diameterIn";
             this.diameterIn.Size = new System.Drawing.Size(100, 20);
             this.diameterIn.TabIndex = 1;
-            this.diameterIn.TextChanged += new System.EventHandler(this.diameterIn_TextChanged);
             // 
             // label2
             // 
@@ -79,7 +78,6 @@
             this.shaftDiam.Name = "shaftDiam";
             this.shaftDiam.Size = new System.Drawing.Size(100, 20);
             this.shaftDiam.TabIndex = 3;
-            this.shaftDiam.TextChanged += new System.EventHandler(this.shaftDiam_TextChanged);
             // 
             // label3
             // 
@@ -96,7 +94,6 @@
             this.thickness.Name = "thickness";
             this.thickness.Size = new System.Drawing.Size(100, 20);
             this.thickness.TabIndex = 5;
-            this.thickness.TextChanged += new System.EventHandler(this.thickness_TextChanged);
             // 
             // keywayDepth
             // 
@@ -104,7 +101,6 @@
             this.keywayDepth.Name = "keywayDepth";
             this.keywayDepth.Size = new System.Drawing.Size(100, 20);
             this.keywayDepth.TabIndex = 6;
-            this.keywayDepth.TextChanged += new System.EventHandler(this.keywayDepth_TextChanged);
             // 
             // label4
             // 
@@ -130,16 +126,15 @@
             this.keywayWidth.Name = "keywayWidth";
             this.keywayWidth.Size = new System.Drawing.Size(100, 20);
             this.keywayWidth.TabIndex = 9;
-            this.keywayWidth.TextChanged += new System.EventHandler(this.keywayWidth_TextChanged);
             // 
             // label6
             // 
             this.label6.AutoSize = true;
             this.label6.Location = new System.Drawing.Point(12, 55);
             this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(158, 13);
+            this.label6.Size = new System.Drawing.Size(157, 13);
             this.label6.TabIndex = 10;
-            this.label6.Text = "Диаметр шестерни (внешний)";
+            this.label6.Text = "Диаметр окружности вершин";
             // 
             // diameterOut
             // 
@@ -147,7 +142,6 @@
             this.diameterOut.Name = "diameterOut";
             this.diameterOut.Size = new System.Drawing.Size(100, 20);
             this.diameterOut.TabIndex = 11;
-            this.diameterOut.TextChanged += new System.EventHandler(this.diameterOut_TextChanged);
             // 
             // label7
             // 
@@ -164,7 +158,6 @@
             this.teethCount.Name = "teethCount";
             this.teethCount.Size = new System.Drawing.Size(100, 20);
             this.teethCount.TabIndex = 13;
-            this.teethCount.TextChanged += new System.EventHandler(this.teethCount_TextChanged);
             // 
             // button1
             // 
@@ -181,9 +174,9 @@
             this.label8.AutoSize = true;
             this.label8.Location = new System.Drawing.Point(14, 211);
             this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(118, 13);
+            this.label8.Size = new System.Drawing.Size(115, 13);
             this.label8.TabIndex = 15;
-            this.label8.Text = "Угол наклона резьбы";
+            this.label8.Text = "Угол наклона зубьев";
             // 
             // angle
             // 
@@ -191,7 +184,6 @@
             this.angle.Name = "angle";
             this.angle.Size = new System.Drawing.Size(100, 20);
             this.angle.TabIndex = 0;
-            this.angle.TextChanged += new System.EventHandler(this.angle_TextChanged);
             // 
             // PluginFrm
             // 
